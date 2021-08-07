@@ -34,14 +34,12 @@ class myThread (threading.Thread):
         print ("Exiting " + self.name)
         
 def crawl(ticker, directory):
-    #directory =  str(sys.argv[2])
-    #ticker="QQQ"
-    #folder="./data"
     folder="{0}/{1}".format(directory, ticker)
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
     url = 'https://query1.finance.yahoo.com/v8/finance/chart/{0}?symbol={1}&period1={2}&period2={3}&interval=1m&includePrePost=true'.format(ticker,ticker,int(time.time())-600000 , int(time.time()))
     if not os.path.exists(folder):
         os.makedirs(folder)
-    resp = requests.get(url)
+    resp = requests.get(url, headers=headers)
     meta = json.loads(resp.text)["chart"]["result"][0]["meta"]
     timestamps = json.loads(resp.text)["chart"]["result"][0]["timestamp"]
     indicators = json.loads(resp.text)["chart"]["result"][0]["indicators"]["quote"][0]
@@ -92,6 +90,7 @@ def crawl(ticker, directory):
 if __name__ == "__main__":
     thread_count = int(sys.argv[1])
     directory =  str(sys.argv[2])
+    tickers_file =  str(sys.argv[3])
     if not os.path.exists(directory):
         os.mkdir(directory)
     
@@ -102,7 +101,7 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, service_shutdown)
     
     threads_arr=[]
-    tickers = pd.read_csv("D:\Workspace\stock_scraper\scraper\yahoofin\screener.csv")
+    tickers = pd.read_csv(tickers_file)
     if(tickers is not None and len(tickers)>0):
         cnt = math.ceil(len(tickers)/thread_count)
         for x in range(0, thread_count):
